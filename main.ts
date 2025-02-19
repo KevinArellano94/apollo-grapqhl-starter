@@ -1,56 +1,49 @@
-import { ApolloServer } from 'npm:@apollo/server';
-import { expressMiddleware } from 'npm:@apollo/server/express4';
-import cors from 'npm:cors';
-import express from "npm:express";
+import { ApolloServer } from "npm:@apollo/server@4.11.3";
+import { startStandaloneServer } from "npm:@apollo/server@4.11.3/standalone";
+import { graphql } from "npm:graphql@16.6";
+// import cors from "npm:cors";
+// import { typeDefs } from "./schema.ts";
+// import { resolvers } from "./resolvers.ts";
 
+export const typeDefs = `
+  type Dinosaur {
+    name: String
+    description: String
+  }
 
-const app = express();
-
-const typeDefs = `#graphql
-	# Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-	# This "Book" type defines the queryable fields for every book in our data source.
-	type Book {
-		title: String
-		author: String
-	}
-
-	# The "Query" type is special: it lists all of the available queries that
-	# clients can execute, along with the return type for each. In this
-	# case, the "books" query returns an array of zero or more Books (defined above).
-	type Query {
-		books: [Book]
-	}
+  type Query {
+    dinosaurs: [Dinosaur]
+		dinosaur(name: String): Dinosaur
+  }
 `;
 
-const books = [
-	{
-		title: 'The Awakening',
-		author: 'Kate Chopin',
-	},
-	{
-		title: 'City of Glass',
-		author: 'Paul Auster',
-	},
+const dinosaurs = [
+  {
+    name: "Aardonyx",
+    description: "An early stage in the evolution of sauropods.",
+  },
+  {
+    name: "Abelisaurus",
+    description: '"Abel\'s lizard" has been reconstructed from a single skull.',
+  },
 ];
 
-const resolvers = {
-	Query: {
-		books: () => books,
-	},
+export const resolvers = {
+  Query: {
+    dinosaurs: () => dinosaurs,
+    dinosaur: (_: any, args: any) => {
+      return dinosaurs.find((dinosaur) => dinosaur.name === args.name);
+    },
+  },
 };
 
 const server = new ApolloServer({
-	typeDefs,
-	resolvers,
+  typeDefs,
+  resolvers,
 });
 
-await server.start();
+const { url } = await startStandaloneServer(server, {
+  listen: { port: 8000 },
+});
 
-app.use(
-	'/graphql',
-	cors<cors.CorsRequest>(),
-	express.json(),
-	expressMiddleware(server),
-);
-
-app.listen(8080)
+console.log(`Server running on: ${url}`);

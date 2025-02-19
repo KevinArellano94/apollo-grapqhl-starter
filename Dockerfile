@@ -1,9 +1,13 @@
-FROM denoland/deno:2.1.10
+FROM denoland/deno:latest
 
 WORKDIR /app
 
-COPY . .
+COPY deno.json* .
 
 RUN deno cache main.ts
 
-RUN deno --allow-env --allow-read --allow-net --allow-run ./main.ts
+COPY . .
+
+EXPOSE 8000
+
+CMD ["deno", "run", "--allow-net", "--allow-env", "--allow-read", "--allow-sys", "main.ts"]
